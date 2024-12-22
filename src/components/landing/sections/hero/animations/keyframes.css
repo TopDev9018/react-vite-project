@@ -1,0 +1,17 @@
+@keyframes tap {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(4px) rotate(-5deg); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.98); }
+}
+
+.animate-tap {
+  animation: tap 0.5s ease-in-out;
+}
+
+.animate-bounce-soft {
+  animation: bounce 0.5s ease-in-out;
+}
