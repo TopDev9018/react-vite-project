@@ -9,14 +9,48 @@ import { SocialAuth } from './components/SocialAuth';
 export function SignupPage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    const name = formData.get('name') as string;
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const terms = formData.get('terms') as boolean;
+
+    // Check if the user agrees to the terms
+    if (!terms) {
+      setErrorMessage("You must agree to the terms and privacy policy.");
+      return;
+    }
+
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    setErrorMessage(null); // Clear any previous errors
+
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username: email, password, name }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to create account');
+      }
+
+      // Redirect to the welcome page after successful signup
       navigate('/onboarding/welcome');
-    }, 1000);
+    } catch (error: any) {
+      setIsLoading(false);
+      setErrorMessage(error.message || 'Something went wrong!');
+    }
   };
 
   return (
@@ -93,6 +127,10 @@ export function SignupPage() {
               </Link>
             </label>
           </div>
+
+          {errorMessage && (
+            <div className="text-red-500 text-sm text-center">{errorMessage}</div>
+          )}
 
           <Button 
             type="submit" 

@@ -9,14 +9,40 @@ import { SocialAuth } from './components/SocialAuth';
 export function LoginPage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // For error handling
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    setErrorMessage(null); // Reset previous error messages
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username: email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      // Navigate to the onboarding page on successful login
       navigate('/onboarding');
-    }, 1000);
+    } catch (error: any) {
+      setIsLoading(false);
+      setErrorMessage(error.message || 'Something went wrong!');
+    }
   };
 
   return (
@@ -66,6 +92,10 @@ export function LoginPage() {
               Forgot your password?
             </Link>
           </div>
+
+          {errorMessage && (
+            <div className="text-red-500 text-sm text-center">{errorMessage}</div>
+          )}
 
           <Button 
             type="submit" 
